@@ -8,11 +8,11 @@ This repository serves as a collection of reproducible examples demonstrating va
 
 ## Captured Issues
 
-### 1. ThinkingConfig + Output Schema Conflict
+### 1. AgentTool Returns Thoughts Instead of Output
 
 **Location**: [src/agent_tool_example/](src/agent_tool_example/)
 
-**Issue**: When an Agent is configured with both `ThinkingConfig(include_thoughts=True)` and a structured `output_schema`, the model outputs markdown-formatted thoughts instead of valid JSON conforming to the Pydantic schema.
+**Issue**: When an Agent is wrapped as a tool via `AgentTool` and configured with `ThinkingConfig(include_thoughts=True)` and an `output_schema`, the tool's function response returns the model's thoughts instead of the structured output, causing JSON parsing failures.
 
 **Error**:
 ```
@@ -21,9 +21,10 @@ This repository serves as a collection of reproducible examples demonstrating va
 ```
 
 **Root Cause**:
-- `ThinkingConfig(include_thoughts=True, thinking_budget=-1)` instructs the model to output verbose reasoning in natural language
-- `output_schema=CalculatorOutput` expects strict JSON conforming to the Pydantic model
-- These configurations conflict, causing the model to prioritize thought output over structured schema compliance
+- When `include_thoughts=True` is set on an agent used as a tool, the `AgentTool` wrapper returns the thoughts/reasoning text instead of the actual structured output
+- The agent has `output_schema=CalculatorOutput` expecting JSON format
+- But `AgentTool` is returning the markdown-formatted thoughts (e.g., `**Alright, let's break...`) as the function response
+- This causes Pydantic validation to fail when trying to parse thoughts as JSON
 
 **Expected Behavior**: The calculator agent should return JSON like:
 ```json
@@ -43,8 +44,10 @@ This repository serves as a collection of reproducible examples demonstrating va
 2. Set `include_thoughts=False` in ThinkingConfig
 3. Remove `output_schema` if free-form thoughts are needed
 
-**Status**: Unresolved - Framework should either:
-- Prevent this configuration combination
-- Automatically disable thoughts when output_schema is set
-- Document this limitation clearly
+**Status**: Unresolved - `AgentTool` should:
+- Return the actual structured output, not the thoughts, when an agent has both `include_thoughts=True` and `output_schema`
+- Separate thoughts from the tool's return value
+- Or prevent this configuration combination with a clear error message
+
+**Reported**: Issue #3706
 
