@@ -1,0 +1,13 @@
+[project]
+name = "adk-bugs-compilation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "a2a-sdk[all]>=0.3.16",
+    "google-adk>=1.19.0",
+    "opik>=1.9.26",
+    "pydantic>=2.12.4",
+    "python-dotenv>=1.2.1",
+]
